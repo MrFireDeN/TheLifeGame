@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Игра Жизнь</title>
+
+
+</head>
+<body>
+    <div id="app">
+    <h1>{{message}}</h1>
+    <button @click="notify">Кликни</button>
+    </div>
+
+</body>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
+  <script>
+        Vue.createApp({
+          data() {
+            return {
+              message: 'Hello World!'
+            }
+          },
+          methods: {
+            reverseMessage() {
+              this.message = this.message.split('').reverse().join('')
+            },
+            notify() {
+              alert('navigation was prevented.')
+            }
+          }
+        }).mount('#app')
+  </script>
+
+</html>

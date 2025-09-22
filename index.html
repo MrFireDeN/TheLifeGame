@@ -1,36 +1,157 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Игра Жизнь</title>
-
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Игра «Жизнь»</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="app">
-    <h1>{{message}}</h1>
-    <button @click="notify">Кликни</button>
+  <div id="app" class="class">
+    <h1>Игра «Жизнь»</h1>
+
+    <div class="controls">
+      <div class="group">
+        <button class="btn primary" @click="start" :disabled="running">Старт</button>
+        <button class="btn" @click="pause" :disabled="!running">Стоп</button>
+        <button class="btn warn" @click="resetAll">Сброс</button>
+      </div>
+      <div class="group">
+        <label>Строк: <input type="number" min="5" max="120" v-model.number="rows" @change="resize" style="width:70px"/></label>
+        <label>Столбцов: <input type="number" min="5" max="160" v-model.number="cols" @change="resize" style="width:70px"/></label>
+      </div>
+      <div class="group">
+        <label>Интервал (мс): <input type="number" min="50" step="50" v-model.number="tickMs" style="width:80px"/></label>
+      </div>
+      <div class="group stat">
+        <span>Такт: <b>{{ generation }}</b></span>
+        <span>·</span>
+        <span>Живых: <b>{{ liveCount }}</b> / {{ totalCells }}</span>
+      </div>
     </div>
 
-</body>
+    <table class="grid">
+      <tbody>
+        <tr v-for="(row, r) in grid" :key="'r'+r">
+          <td v-for="(cell, c) in row"
+              :key="'c'+c"
+              class="cell"
+              :class="{ alive: cell }"
+              @click="toggle(r,c)"
+              @mousedown.prevent>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      Подсказки: кликайте по ячейкам для установки начального паттерна. Сброс очищает поле и обнуляет такт.
+    </div>
+  </div>
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/3.3.4/vue.global.min.js"></script>
   <script>
-        Vue.createApp({
-          data() {
-            return {
-              message: 'Hello World!'
-            }
-          },
-          methods: {
-            reverseMessage() {
-              this.message = this.message.split('').reverse().join('')
-            },
-            notify() {
-              alert('navigation was prevented.')
+    Vue.createApp({
+      data() {
+        const rows = 25, cols = 40;
+        return {
+          rows, cols,
+          grid: Array.from({ length: rows }, () => Array(cols).fill(false)),
+          generation: 0,
+          tickMs: 100,
+          running: false,
+          t: null
+        };
+      },
+      computed: {
+        totalCells() { return this.rows * this.cols; },
+        liveCount() {
+          let s = 0;
+          for (let r = 0; r < this.rows; r++) {
+            const row = this.grid[r];
+            for (let c = 0; c < this.cols; c++) if (row[c]) s++;
+          }
+          return s;
+        }
+      },
+      methods: {
+        setTimeoutCompat(delayMs, fn) { return window.setTimeout(fn, delayMs); },
+
+        cloneGrid(src) { return src.map(row => row.slice()); },
+
+        toggle(r, c) {
+          this.grid[r][c] = !this.grid[r][c];
+        },
+
+        neighborsAlive(r, c) {
+          let count = 0;
+          for (let dr = -1; dr <= 1; dr++) {
+            for (let dc = -1; dc <= 1; dc++) {
+              if (dr === 0 && dc === 0) continue;
+              const rr = r + dr, cc = c + dc;
+              if (rr >= 0 && rr < this.rows && cc >= 0 && cc < this.cols) {
+                if (this.grid[rr][cc]) count++;
+              }
             }
           }
-        }).mount('#app')
-  </script>
+          return count;
+        },
 
+        stepOnce() {
+          const next = this.cloneGrid(this.grid);
+          for (let r = 0; r < this.rows; r++) {
+            for (let c = 0; c < this.cols; c++) {
+              const alive = this.grid[r][c];
+              const n = this.neighborsAlive(r, c);
+              if (alive && (n < 2 || n > 3)) next[r][c] = false;
+              else if (!alive && n === 3)        next[r][c] = true;
+            }
+          }
+          this.grid = next;
+          this.generation++;
+        },
+
+        tickGame() {
+          this.stepOnce();
+          if (this.running) {
+            this.t = this.setTimeoutCompat(this.tickMs, this.tickGame);
+          }
+        },
+
+        start() {
+          if (this.running) return;
+          this.running = true;
+          this.t = this.setTimeoutCompat(this.tickMs, this.tickGame);
+        },
+
+        pause() {
+          if (this.t !== null) {
+            clearTimeout(this.t);
+            this.t = null;
+          }
+          this.running = false;
+        },
+
+        resetAll() {
+          this.pause();
+          this.generation = 0;
+          this.grid = Array.from({ length: this.rows }, () => Array(this.cols).fill(false));
+        },
+
+        resize() {
+          const newRows = Math.max(5, Math.min(120, this.rows|0));
+          const newCols = Math.max(5, Math.min(160, this.cols|0));
+          const next = Array.from({ length: newRows }, (_, r) =>
+            Array.from({ length: newCols }, (_, c) =>
+              r < this.grid.length && c < this.grid[0].length ? this.grid[r][c] : false
+            )
+          );
+          this.rows = newRows;
+          this.cols = newCols;
+          this.grid = next;
+        }
+      }
+    }).mount('#app');
+  </script>
+</body>
 </html>

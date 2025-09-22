@@ -23,3 +23,27 @@ table.grid .cell:hover { outline: 1px solid #1a73e8; }
 /* Визуальная .class */
 .class { outline: 2px solid #e5e7eb; padding: 6px; border-radius: 8px; }
 .footer-note { margin-top: 10px; color:#555; font-size: 12px; }
+
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 12px;
+}
+
+table.grid {
+  border-collapse: separate;
+  border-spacing: var(--gap);
+  background: #ddd;
+  table-layout: fixed;
+  min-width: max-content;
+}
+
+table.grid .cell {
+  width: var(--cell-size);
+  height: var(--cell-size);
+  min-width: var(--cell-size);
+  min-height: var(--cell-size);
+  background: #fff;
+  cursor: pointer;
+}

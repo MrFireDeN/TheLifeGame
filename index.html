@@ -17,8 +17,8 @@
         <button class="btn warn" @click="resetAll">Сброс</button>
       </div>
       <div class="group">
-        <label>Строк: <input type="number" min="5" max="120" v-model.number="rows" @change="resize" style="width:70px"/></label>
-        <label>Столбцов: <input type="number" min="5" max="160" v-model.number="cols" @change="resize" style="width:70px"/></label>
+        <label>Строк: <input type="number" min="5" max="1000" v-model.number="rows" @change="resize" style="width:70px"/></label>
+        <label>Столбцов: <input type="number" min="5" max="1000" v-model.number="cols" @change="resize" style="width:70px"/></label>
       </div>
       <div class="group">
         <label>Интервал (мс): <input type="number" min="50" step="50" v-model.number="tickMs" style="width:80px"/></label>
@@ -30,19 +30,22 @@
       </div>
     </div>
 
-    <table class="grid">
-      <tbody>
-        <tr v-for="(row, r) in grid" :key="'r'+r">
-          <td v-for="(cell, c) in row"
-              :key="'c'+c"
-              class="cell"
-              :class="{ alive: cell }"
-              @click="toggle(r,c)"
-              @mousedown.prevent>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+    <div class="table-wrapper">
+      <table class="grid">
+        <tbody>
+          <tr v-for="(row, r) in grid" :key="'r'+r">
+            <td v-for="(cell, c) in row"
+                :key="'c'+c"
+                class="cell"
+                :class="{ alive: cell }"
+                @click="toggle(r,c)"
+                @mousedown.prevent>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
 
     <div class="footer-note">
       Подсказки: кликайте по ячейкам для установки начального паттерна. Сброс очищает поле и обнуляет такт.
